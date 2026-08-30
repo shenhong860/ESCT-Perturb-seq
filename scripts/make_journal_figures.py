@@ -429,10 +429,44 @@ def fig3_panel_b(ax):
     ax.plot(xs, res.intercept + res.slope * xs, color=RED, lw=1.2)
     ax.text(0.97, 0.04, f"r = {res.rvalue:.2f}", transform=ax.transAxes,
             ha="right", fontsize=6)
-    marginal_hist(ax, ratios, "#42949E", (0.12, 0.92, 0.76, 0.16), (0, 1))
-    marginal_hist(ax, pcc_add, "#0F4D92", (0.94, 0.12, 0.16, 0.76), (0, 1))
     ax.set_xlabel("Observed non-additivity  ε")
     ax.set_ylabel("Additive baseline PCC")
+
+
+def make_fig3_panel_b_standalone():
+    """Panel b with separated marginal distributions and regression."""
+    fig = plt.figure(figsize=(4.8, 4.2))
+    gs = fig.add_gridspec(2, 2, width_ratios=[4, 1], height_ratios=[1, 4],
+                          hspace=0.06, wspace=0.06, left=0.11, right=0.97,
+                          top=0.90, bottom=0.10)
+    ax = fig.add_subplot(gs[1, 0])
+    ax_top = fig.add_subplot(gs[0, 0], sharex=ax)
+    ax_right = fig.add_subplot(gs[1, 1], sharey=ax)
+
+    _, ratios, pcc_add = fig3_data()
+    ax.scatter(ratios, pcc_add, s=16, color=BLUE, alpha=0.7, linewidths=0,
+               zorder=3)
+    res = st.linregress(ratios, pcc_add)
+    xs = np.linspace(ratios.min(), ratios.max(), 100)
+    ax.plot(xs, res.intercept + res.slope * xs, color=RED, lw=1.2)
+    ax.text(0.97, 0.04, f"r = {res.rvalue:.2f}", transform=ax.transAxes,
+            ha="right", fontsize=6)
+    ax_top.hist(ratios, bins=18, color="#42949E", alpha=0.55, density=True,
+                edgecolor="white", linewidth=0.4)
+    ax_right.hist(pcc_add, bins=18, color="#0F4D92", alpha=0.55,
+                  density=True, orientation="horizontal",
+                  edgecolor="white", linewidth=0.4)
+    ax.set_xlabel("Observed non-additivity  ε")
+    ax.set_ylabel("Additive baseline PCC")
+    ax.set_title("Additive PCC vs ε", loc="left", fontweight="bold",
+                 fontsize=7)
+    ax_top.tick_params(labelbottom=False)
+    ax_right.tick_params(labelleft=False)
+    ax_top.set_yticks([])
+    ax_right.set_xticks([])
+    fig.text(0.03, 0.95, "b", fontweight="bold", fontsize=8)
+    save_fig(fig, "figure3_journal_panel_b")
+    plt.close(fig)
 
 
 def fig3_panel_c(ax):
@@ -461,9 +495,9 @@ def make_fig3():
     save_fig(fig, "figure3_journal")
     plt.close(fig)
 
+    make_fig3_panel_b_standalone()
     panels = [
         ("figure3_journal_panel_a", fig3_panel_a),
-        ("figure3_journal_panel_b", fig3_panel_b),
         ("figure3_journal_panel_c", fig3_panel_c),
     ]
     for name, draw in panels:
