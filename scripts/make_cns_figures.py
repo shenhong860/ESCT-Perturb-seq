@@ -5,7 +5,9 @@ import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import numpy as np, json, os
 
-OUT = r"D:\guo\新课题_待定\submission"
+from paths import env_path, experiments_dir
+
+OUT = env_path("ESCT_FIGURE_DIR", experiments_dir() / "figures")
 os.makedirs(OUT, exist_ok=True)
 
 # CNS-style settings
@@ -168,7 +170,8 @@ plt.close()
 # ==============================
 # FIGURE 3: Epistasis discovery (3 panels)
 # ==============================
-j = json.load(open(r"D:\guo\新课题_待定\experiments\epistasis_discovery_norman.json"))
+j = json.load(open(env_path("ESCT_EPS_JSON",
+                            experiments_dir() / "epistasis_discovery_norman.json")))
 combos = [r["combo"] for r in j["per_combo"]]
 ratios = [r["ratio"] for r in j["per_combo"]]
 pccs = [r["pcc_add"] for r in j["per_combo"]]

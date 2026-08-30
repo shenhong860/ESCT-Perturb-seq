@@ -4,13 +4,18 @@ import json
 
 import numpy as np
 
+from paths import env_path, experiments_dir
 
 DATASETS = {
-    "norman": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_norman.json",
-    "replogle": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_replogle.json",
-    "wessels": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_wessels.json",
+    "norman": env_path("ESCT_NORMAN_JSON",
+                       experiments_dir() / "esct_devgamma_clean_norman.json"),
+    "replogle": env_path("ESCT_REPLOGLE_JSON",
+                         experiments_dir() / "esct_devgamma_clean_replogle.json"),
+    "wessels": env_path("ESCT_WESSELS_JSON",
+                        experiments_dir() / "esct_devgamma_clean_wessels.json"),
 }
-OUT = r"E:\guo\新课题_待定\experiments\effect_sizes.json"
+OUT = env_path("ESCT_EFFECT_SIZES_OUT",
+               experiments_dir() / "effect_sizes.json")
 
 
 def seeded_rows(obj):

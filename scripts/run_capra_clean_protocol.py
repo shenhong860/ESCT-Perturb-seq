@@ -17,7 +17,10 @@ import numpy as np
 import pandas as pd
 import torch
 
-CAPRA_ROOT = Path(r"/mnt/d/guo/新课题_待定/论文/CAPRA_REPO/CAPRA-main/capra")
+from paths import (capra_data_dir, capra_root, data_dir, deg_dir,
+                   env_path, experiments_dir)
+
+CAPRA_ROOT = capra_root()
 sys.path.insert(0, str(CAPRA_ROOT))
 
 from frame import CAPRA, CAPRAData, load_gene_embedding_table  # noqa: E402
@@ -28,12 +31,14 @@ from run_esct_devgamma_clean import (  # noqa: E402
 )
 
 
-RAW = r"/mnt/d/guo/scPerturb/data/28147883/Norman.h5ad"
-HVG = r"/mnt/d/guo/新课题_待定/data/norman/norman_hvg1000.h5ad"
-EMB = (r"/mnt/d/guo/新课题_待定/论文/CAPRA_REPO/CAPRA-main/demo/data"
-       r"/norman_example_genept_embeddings.pkl")
-DEG = r"/mnt/d/guo/新课题_待定/data/scPerturb/DEG_hvg5000_Norman.pkl"
-OUT = r"/mnt/e/guo/新课题_待定/experiments/capra_clean_protocol.json"
+RAW = env_path("ESCT_CAPRA_RAW", data_dir() / "Norman.h5ad")
+HVG = env_path("ESCT_CAPRA_HVG", data_dir() / "norman" / "norman_hvg1000.h5ad")
+EMB = env_path("ESCT_CAPRA_EMB",
+               capra_data_dir() / "norman_example_genept_embeddings.pkl")
+DEG = env_path("ESCT_CAPRA_DEG", deg_dir() / "DEG_hvg5000_Norman.pkl")
+OUT = env_path("ESCT_CAPRA_OUT", experiments_dir() / "capra_clean_protocol.json")
+CAPRA_RUN_DIR = env_path("ESCT_CAPRA_RUN_DIR",
+                         experiments_dir() / "capra_runs_80")
 N_SPLITS = int(os.environ.get("CAPRA_SPLITS", "12"))
 N_EPOCHS = int(os.environ.get("CAPRA_EPOCHS", "80"))
 N_PRED = int(os.environ.get("CAPRA_NPRED", "200"))
@@ -136,8 +141,7 @@ def main():
         model = CAPRA(capra_data)
         print(f"CAPRA fit split={split_seed} epochs={N_EPOCHS}", flush=True)
         model.fit_capra_response_operator(
-            output_dir=Path(r"/mnt/e/guo/新课题_待定/experiments/capra_runs_80")
-                      / f"seed{split_seed}",
+            output_dir=CAPRA_RUN_DIR / f"seed{split_seed}",
             run_name=f"capra_seed{split_seed}",
             n_epochs=N_EPOCHS,
             min_epochs=min(20, N_EPOCHS),

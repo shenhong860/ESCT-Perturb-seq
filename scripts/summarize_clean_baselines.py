@@ -5,15 +5,21 @@ import json
 import numpy as np
 import scipy.stats as st
 
+from paths import REPO_ROOT, env_path, experiments_dir
 
-ESCT = r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_norman.json"
-W1 = r"D:\guo\新课题_待定\experiments\esct_w1_devgamma_clean_norman.json"
-LM = r"D:\guo\新课题_待定\experiments\linearModel_clean_protocol.json"
-MLP = r"D:\guo\新课题_待定\experiments\scgpt_mlp_clean_protocol.json"
-SCGPT = r"D:\guo\新课题_待定\experiments\scgpt_transformer_finetune_clean.json"
-CAPRA = r"E:\guo\新课题_待定\experiments\capra_clean_protocol.json"
-OUT = (r"C:\Users\Administrator\Documents\ChatGPT\虚拟细胞"
-       r"\clean_baseline_comparison.json")
+ESCT = env_path("ESCT_JSON", experiments_dir() / "esct_devgamma_clean_norman.json")
+W1 = env_path("ESCT_W1_JSON",
+              experiments_dir() / "esct_w1_devgamma_clean_norman.json")
+LM = env_path("ESCT_LINEAR_JSON",
+              experiments_dir() / "linearModel_clean_protocol.json")
+MLP = env_path("ESCT_SCGPT_MLP_JSON",
+               experiments_dir() / "scgpt_mlp_clean_protocol.json")
+SCGPT = env_path("ESCT_SCGPT_FT_JSON",
+                 experiments_dir() / "scgpt_transformer_finetune_clean.json")
+CAPRA = env_path("ESCT_CAPRA_JSON",
+                 experiments_dir() / "capra_clean_protocol.json")
+OUT = env_path("ESCT_SUMMARY_OUT",
+               REPO_ROOT / "outputs" / "clean_baseline_comparison.json")
 
 
 def rows_with_seed(path):

@@ -5,6 +5,7 @@ import json
 import numpy as np
 from sklearn.decomposition import PCA
 
+from paths import env_path, experiments_dir
 from run_esct_devgamma_clean import (
     DEV_FRAC, TRAIN_FRAC, load_dataset, metrics, split_terms,
 )
@@ -13,7 +14,8 @@ from run_esct_devgamma_clean import (
 RIDGE = 0.1
 PCA_DIM = 10
 N_SPLITS = 12
-OUT = r"D:\guo\新课题_待定\experiments\linearModel_clean_protocol.json"
+OUT = env_path("ESCT_LINEAR_OUT",
+               experiments_dir() / "linearModel_clean_protocol.json")
 
 
 def main():

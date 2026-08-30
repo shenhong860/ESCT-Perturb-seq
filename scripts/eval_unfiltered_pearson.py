@@ -6,13 +6,18 @@ import numpy as np
 import scipy.stats as st
 from scipy.stats import pearsonr
 
+from paths import env_path, experiments_dir
 
 DATASETS = {
-    "norman": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_norman.json",
-    "replogle": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_replogle.json",
-    "wessels": r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_wessels.json",
+    "norman": env_path("ESCT_NORMAN_JSON",
+                       experiments_dir() / "esct_devgamma_clean_norman.json"),
+    "replogle": env_path("ESCT_REPLOGLE_JSON",
+                         experiments_dir() / "esct_devgamma_clean_replogle.json"),
+    "wessels": env_path("ESCT_WESSELS_JSON",
+                        experiments_dir() / "esct_devgamma_clean_wessels.json"),
 }
-OUT = r"E:\guo\新课题_待定\experiments\unfiltered_pearson.json"
+OUT = env_path("ESCT_UNFILTERED_PEARSON_OUT",
+               experiments_dir() / "unfiltered_pearson.json")
 
 
 def one_dataset(name, path):

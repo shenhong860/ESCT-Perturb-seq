@@ -5,13 +5,20 @@ import json
 import numpy as np
 import scipy.stats as st
 
+from paths import env_path, experiments_dir
 
-FULL = r"D:\guo\新课题_待定\experiments\esct_w1_devgamma_clean_norman.json"
-NO_RET = r"E:\guo\新课题_待定\experiments\ablation_w1_norman_noretrieval.json"
-NO_RES = r"E:\guo\新课题_待定\experiments\ablation_w1_norman_noresidual.json"
-MEAN = r"D:\guo\新课题_待定\experiments\esct_devgamma_clean_norman.json"
-MEAN_MMD = r"E:\guo\新课题_待定\experiments\ablation_mean_only_mmd.json"
-OUT = r"E:\guo\新课题_待定\experiments\ablation_summary.json"
+FULL = env_path("ESCT_W1_JSON",
+                experiments_dir() / "esct_w1_devgamma_clean_norman.json")
+NO_RET = env_path("ESCT_ABLATION_NO_RET_JSON",
+                  experiments_dir() / "ablation_w1_norman_noretrieval.json")
+NO_RES = env_path("ESCT_ABLATION_NO_RES_JSON",
+                  experiments_dir() / "ablation_w1_norman_noresidual.json")
+MEAN = env_path("ESCT_NORMAN_JSON",
+                experiments_dir() / "esct_devgamma_clean_norman.json")
+MEAN_MMD = env_path("ESCT_ABLATION_MEAN_MMD_JSON",
+                    experiments_dir() / "ablation_mean_only_mmd.json")
+OUT = env_path("ESCT_ABLATION_SUMMARY_OUT",
+               experiments_dir() / "ablation_summary.json")
 
 
 def w1_map(path, metric_field="w1"):

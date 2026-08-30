@@ -15,13 +15,15 @@ import torch.nn as nn
 from run_esct_devgamma_clean import (
     DEV_FRAC, TRAIN_FRAC, load_dataset, metrics, split_terms,
 )
+from paths import env_path, experiments_dir
 
 
 EPOCHS = 50
 LR = 1e-4
 HIDDEN = 256
 N_SPLITS = 12
-OUT = r"D:\guo\新课题_待定\experiments\scgpt_mlp_clean_protocol.json"
+OUT = env_path("ESCT_SCGPT_MLP_OUT",
+               experiments_dir() / "scgpt_mlp_clean_protocol.json")
 
 
 def main():

@@ -16,6 +16,8 @@ import numpy as np
 import scipy.stats as st
 from scipy.stats import pearsonr
 
+from paths import dataset_paths
+
 
 TOP_K = 100
 N_SPLITS = 12
@@ -62,10 +64,9 @@ def metrics(pred, true):
 
 
 def load_dataset(name):
+    path, emb_path = dataset_paths(name)
+    a = ad.read_h5ad(path)
     if name.lower() == "norman":
-        path = r"D:\guo\新课题_待定\data\norman\norman_hvg1000.h5ad"
-        emb_path = r"D:\guo\scPerturb\analysis\norman\v0\scgpt_emb.pkl"
-        a = ad.read_h5ad(path)
         guides = a.obs["guide_identity"].astype(str).values
 
         def genes_from_guide(g):
@@ -74,18 +75,8 @@ def load_dataset(name):
 
         pert = np.array(["+".join(genes_from_guide(g)) if genes_from_guide(g)
                          else "control" for g in guides])
-    elif name.lower() == "replogle":
-        path = r"D:\guo\scPerturb\data\28147883\Replogle_exp6.h5ad"
-        emb_path = r"D:\guo\新课题_待定\data\replogle_exp6_scgpt_emb.pkl"
-        a = ad.read_h5ad(path)
-        pert = a.obs["perturbation"].astype(str).values
-    elif name.lower() == "wessels":
-        path = r"D:\guo\scPerturb\data\28147883\Wessels.h5ad"
-        emb_path = r"D:\guo\新课题_待定\data\wessels_scgpt_emb.pkl"
-        a = ad.read_h5ad(path)
-        pert = a.obs["perturbation"].astype(str).values
     else:
-        raise ValueError(name)
+        pert = a.obs["perturbation"].astype(str).values
 
     with open(emb_path, "rb") as f:
         raw_emb = pickle.load(f)

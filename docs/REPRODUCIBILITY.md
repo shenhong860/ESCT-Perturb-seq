@@ -10,6 +10,16 @@
 
 ## Core commands
 
+Set the data/output directories first (see `scripts/paths.py` for the full
+list of environment variables):
+
+```bash
+export ESCT_DATA_DIR=/path/to/h5ad
+export ESCT_EMB_DIR=/path/to/scgpt_embeddings
+export ESCT_DEG_DIR=/path/to/deg
+export ESCT_EXPERIMENTS_DIR=/path/to/outputs
+```
+
 ```bash
 python scripts/run_esct_devgamma_clean.py norman outputs/norman.json
 python scripts/run_esct_devgamma_clean.py replogle outputs/replogle.json
@@ -34,4 +44,9 @@ Norman cat0 n=50: PCC 0.667, dir 0.805, mean L2 2.487, MMD 0.0503.
 CAPRA 80-epoch: PCC 0.601, dir 0.775, mean L2 3.390.
 
 Full tables and p-values are in the manuscript and
-`D:\guo\新课题_待定\submission\FINAL_STATUS_v22.md`.
+`FINAL_STATUS_v22.md` in the manuscript submission package.
+
+## Attribution
+
+The evaluation protocol, pretrained embeddings, and baseline code used here
+come from external sources; see `docs/ATTRIBUTION.md` before redistribution.

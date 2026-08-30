@@ -9,19 +9,21 @@ import numpy as np
 import scipy.stats as st
 from scipy.stats import pearsonr
 
+from paths import dataset_paths, deg_dir
+
 
 CONFIG = {
     "norman": {
-        "h5ad": r"D:\guo\新课题_待定\data\norman\norman_hvg1000.h5ad",
-        "deg": r"D:\guo\新课题_待定\data\scPerturb\DEG_hvg5000_Norman.pkl",
+        "h5ad": dataset_paths("norman")[0],
+        "deg": deg_dir() / "DEG_hvg5000_Norman.pkl",
     },
     "replogle": {
-        "h5ad": r"D:\guo\scPerturb\data\28147883\Replogle_exp6.h5ad",
-        "deg": r"D:\guo\新课题_待定\data\scPerturb\DEG_hvg5000_Replogle_exp6.pkl",
+        "h5ad": dataset_paths("replogle")[0],
+        "deg": deg_dir() / "DEG_hvg5000_Replogle_exp6.pkl",
     },
     "wessels": {
-        "h5ad": r"D:\guo\scPerturb\data\28147883\Wessels.h5ad",
-        "deg": r"D:\guo\新课题_待定\data\scPerturb\DEG_hvg5000_Wessels.pkl",
+        "h5ad": dataset_paths("wessels")[0],
+        "deg": deg_dir() / "DEG_hvg5000_Wessels.pkl",
     },
 }
 TOP_DEG = 100

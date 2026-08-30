@@ -6,10 +6,14 @@ import numpy as np
 import scipy.stats as st
 from scipy.stats import pearsonr
 
+from paths import env_path, experiments_dir
 
-W1 = r"D:\guo\新课题_待定\experiments\esct_w1_devgamma_clean_norman.json"
-EPS = r"D:\guo\新课题_待定\experiments\epistasis_discovery_norman.json"
-OUT = r"E:\guo\新课题_待定\experiments\epsilon_stratification.json"
+W1 = env_path("ESCT_W1_JSON",
+              experiments_dir() / "esct_w1_devgamma_clean_norman.json")
+EPS = env_path("ESCT_EPS_JSON",
+               experiments_dir() / "epistasis_discovery_norman.json")
+OUT = env_path("ESCT_EPS_STRAT_OUT",
+               experiments_dir() / "epsilon_stratification.json")
 
 
 def main():

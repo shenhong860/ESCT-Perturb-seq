@@ -17,10 +17,12 @@ import torch
 import torch.nn as nn
 from scipy.stats import pearsonr
 
+from paths import dataset_paths, env_path, experiments_dir, scgpt_weights_dir
 
-DATA = r"D:\guo\新课题_待定\data\norman\norman_hvg1000.h5ad"
-WEIGHTS = r"D:\guo\CW1OT\externals\scgpt_weights"
-OUT = r"D:\guo\新课题_待定\experiments\scgpt_transformer_finetune_clean.json"
+DATA = dataset_paths("norman")[0]
+WEIGHTS = scgpt_weights_dir()
+OUT = env_path("ESCT_SCGPT_FT_OUT",
+               experiments_dir() / "scgpt_transformer_finetune_clean.json")
 N_SPLITS = 12
 TRAIN_FRAC = 0.8
 DEV_FRAC = 0.1

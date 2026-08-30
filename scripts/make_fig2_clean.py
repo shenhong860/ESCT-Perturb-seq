@@ -5,9 +5,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from paths import env_path, experiments_dir
 
-OUT = (r"C:\Users\Administrator\Documents\ChatGPT\虚拟细胞\esct_v22_build"
-       r"\figure2_performance_v22.pdf")
+OUT = env_path("ESCT_FIG2_OUT",
+               experiments_dir() / "figure2_performance_v22.pdf")
 
 plt.rcParams.update({
     "font.family": "sans-serif",
