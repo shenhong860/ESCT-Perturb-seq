@@ -275,8 +275,6 @@ def fig2_panel_c(ax):
         color = DATASET_COLOR[name]
         ax.scatter(x, y, s=14, color=color, alpha=0.72, linewidths=0,
                    label=DATASET_LABEL[name], zorder=3)
-        marginal_hist(ax, x, color, (0.12, 0.92, 0.76, 0.16), (0, 1))
-        marginal_hist(ax, y, color, (0.94, 0.12, 0.16, 0.76), (0, 1))
     lo, hi = 0.0, 1.15
     ax.plot([lo, hi], [lo, hi], color=GREY, lw=0.8, ls="--", zorder=1)
     ax.set_xlim(lo, hi)
@@ -284,6 +282,48 @@ def fig2_panel_c(ax):
     ax.set_xlabel("Additive pearson_distance")
     ax.set_ylabel("ESCT+W1 pearson_distance")
     ax.legend(loc="upper left", fontsize=6, markerscale=1.2)
+
+
+def make_fig2_panel_c_standalone():
+    """Panel c with separated marginal distributions and legend above."""
+    fig = plt.figure(figsize=(4.8, 4.2))
+    gs = fig.add_gridspec(2, 2, width_ratios=[4, 1], height_ratios=[1, 4],
+                          hspace=0.06, wspace=0.06, left=0.11, right=0.97,
+                          top=0.90, bottom=0.10)
+    ax = fig.add_subplot(gs[1, 0])
+    ax_top = fig.add_subplot(gs[0, 0], sharex=ax)
+    ax_right = fig.add_subplot(gs[1, 1], sharey=ax)
+
+    for name in ("norman", "replogle", "wessels"):
+        rows = load_official_pd(name)
+        x = [float(r["add"]) for r in rows]
+        y = [float(r["esct"]) for r in rows]
+        color = DATASET_COLOR[name]
+        ax.scatter(x, y, s=14, color=color, alpha=0.72, linewidths=0,
+                   label=DATASET_LABEL[name], zorder=3)
+        ax_top.hist(x, bins=18, color=color, alpha=0.55, density=True,
+                    edgecolor="white", linewidth=0.4)
+        ax_right.hist(y, bins=18, color=color, alpha=0.55, density=True,
+                      orientation="horizontal", edgecolor="white",
+                      linewidth=0.4)
+
+    lo, hi = 0.0, 1.15
+    ax.plot([lo, hi], [lo, hi], color=GREY, lw=0.8, ls="--", zorder=1)
+    ax.set_xlim(lo, hi)
+    ax.set_ylim(lo, hi)
+    ax.set_xlabel("Additive pearson_distance")
+    ax.set_ylabel("ESCT+W1 pearson_distance")
+    ax.set_title("Official pearson_distance", loc="left", fontweight="bold",
+                 fontsize=7)
+    ax_top.tick_params(labelbottom=False)
+    ax_right.tick_params(labelleft=False)
+    ax_top.set_yticks([])
+    ax_right.set_xticks([])
+    fig.text(0.03, 0.95, "c", fontweight="bold", fontsize=8)
+    fig.legend(loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.975),
+               fontsize=6.5, frameon=False)
+    save_fig(fig, "figure2_journal_panel_c")
+    plt.close(fig)
 
 
 def fig2_panel_d(ax_grid):
@@ -337,14 +377,7 @@ def make_fig2():
 
     make_fig2_panel_a_standalone()
 
-    for name, draw, label in [
-        ("figure2_journal_panel_c", fig2_panel_c, "c"),
-    ]:
-        fig, ax = plt.subplots(figsize=(3.2, 3.2))
-        panel_label(ax, label, x=-0.10, y=1.04)
-        draw(ax)
-        save_fig(fig, name)
-        plt.close(fig)
+    make_fig2_panel_c_standalone()
 
     for name, draw, label, size in [
         ("figure2_journal_panel_b", fig2_panel_b, "b", (5.4, 4.0)),
