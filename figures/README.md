@@ -20,3 +20,19 @@ Each script writes the combined figure plus one standalone PDF/PNG per panel:
 
 The standalone panels share the same style as the combined figures and can be
 reassembled in an external layout tool.
+
+## Journal-style figures
+
+`scripts/make_journal_figures.py` produces evidence-driven, non-bar versions
+of Figures 2 and 3 from the clean result JSONs:
+
+- `figure2_journal` (4 panels): paired per-combo PCC scatter with marginal
+  distributions, per-dataset mean +/- 95% CI dot plots, official
+  pearson_distance paired scatter, and same-split Norman baseline dot plots.
+- `figure3_journal` (3 panels): non-additivity density, epsilon vs additive
+  PCC scatter with regression and marginals, and top-15 dot plot.
+
+Every panel is also exported separately with the `figure2_journal_panel_*` /
+`figure3_journal_panel_*` prefixes. Outputs include SVG, PDF, PNG and TIFF at
+600 dpi. Static preflight (`validate_figure.py`) and PDF text audit pass with
+the 5 pt glyph floor.
