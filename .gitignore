@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.log
+*.h5ad
+*.pkl
+*.pt
+*.ckpt
+*.pdf
+*.png
+data/*
+!data/README.md
+outputs/*
+!outputs/.gitkeep
+.DS_Store
