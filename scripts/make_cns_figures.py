@@ -10,6 +10,15 @@ from paths import env_path, experiments_dir
 OUT = env_path("ESCT_FIGURE_DIR", experiments_dir() / "figures")
 os.makedirs(OUT, exist_ok=True)
 
+
+def save_fig(fig, name):
+    """Write one figure as both PDF and PNG into the output directory."""
+    for ext in (".pdf", ".png"):
+        path = OUT / (name + ext)
+        fig.savefig(path, dpi=300, bbox_inches="tight", facecolor="white")
+        print("written:", path)
+
+
 # CNS-style settings
 plt.rcParams.update({
     "font.family": "sans-serif",
@@ -115,57 +124,85 @@ plt.close()
 # ==============================
 # FIGURE 2: Performance comparison (4 panels)
 # ==============================
-fig2, axes2 = plt.subplots(1, 4, figsize=(14, 3.2))
-
 methods = ["add", "linearModel", "ESCT v1", "ESCT v2.1", "scGPT ft"]
 pcc_vals = [0.508, 0.518, 0.678, 0.701, 0.731]
 dir_vals = [0.758, 0.751, 0.814, 0.828, 0.874]
 l2_vals  = [3.142, 3.080, 2.571, 2.489, 4.010]
 colors   = ["#BDBDBD", "#9E9E9E", "#64B5F6", "#1976D2", "#EF5350"]
 
-# Panel a: PCC
-ax = axes2[0]
-bars = ax.barh(methods[::-1], pcc_vals[::-1], color=colors[::-1], edgecolor="white", height=0.6)
-ax.set_xlabel("PCC-top100", fontsize=9)
-ax.set_title("a  PCC (higher = better)", fontsize=9, fontweight="bold", loc="left")
-for bar, v in zip(bars, pcc_vals[::-1]):
-    ax.text(v+0.01, bar.get_y()+bar.get_height()/2, f"{v:.3f}", va="center", fontsize=7)
-ax.set_xlim(0, 0.85)
 
-# Panel b: dir
-ax = axes2[1]
-bars = ax.barh(methods[::-1], dir_vals[::-1], color=colors[::-1], edgecolor="white", height=0.6)
-ax.set_xlabel("Direction accuracy", fontsize=9)
-ax.set_title("b  Direction (higher = better)", fontsize=9, fontweight="bold", loc="left")
-for bar, v in zip(bars, dir_vals[::-1]):
-    ax.text(v+0.005, bar.get_y()+bar.get_height()/2, f"{v:.3f}", va="center", fontsize=7)
-ax.set_xlim(0.7, 0.95)
+def draw_fig2_pcc(ax):
+    bars = ax.barh(methods[::-1], pcc_vals[::-1], color=colors[::-1],
+                   edgecolor="white", height=0.6)
+    ax.set_xlabel("PCC-top100", fontsize=9)
+    ax.set_title("a  PCC (higher = better)", fontsize=9, fontweight="bold",
+                 loc="left")
+    for bar, v in zip(bars, pcc_vals[::-1]):
+        ax.text(v + 0.01, bar.get_y() + bar.get_height() / 2, f"{v:.3f}",
+                va="center", fontsize=7)
+    ax.set_xlim(0, 0.85)
 
-# Panel c: L2
-ax = axes2[2]
-bars = ax.barh(methods[::-1], l2_vals[::-1], color=colors[::-1], edgecolor="white", height=0.6)
-ax.set_xlabel("Mean L2 distance", fontsize=9)
-ax.set_title("c  L2 (lower = better)", fontsize=9, fontweight="bold", loc="left")
-for bar, v in zip(bars, l2_vals[::-1]):
-    ax.text(v+0.08, bar.get_y()+bar.get_height()/2, f"{v:.3f}", va="center", fontsize=7)
-ax.set_xlim(0, 5)
 
-# Panel d: PCC vs L2 scatter (trade-off)
-ax = axes2[3]
-for i, (m, p, l) in enumerate(zip(methods, pcc_vals, l2_vals)):
-    ax.scatter(l, p, color=colors[i], s=80, zorder=5, edgecolors="white", linewidths=1)
-    ax.annotate(m, (l, p), textcoords="offset points", xytext=(5,5), fontsize=6)
-ax.set_xlabel("Mean L2 (lower = better)", fontsize=9)
-ax.set_ylabel("PCC-top100 (higher = better)", fontsize=9)
-ax.set_title("d  Direction-calibration trade-off", fontsize=9, fontweight="bold", loc="left")
-ax.annotate("", xy=(2.5, 0.72), xytext=(3.8, 0.75),
-            arrowprops=dict(arrowstyle="->", color=C_GREEN, lw=1.5))
-ax.text(3.2, 0.76, "ESCT\nimprovement", fontsize=6, color=C_GREEN, ha="center")
+def draw_fig2_dir(ax):
+    bars = ax.barh(methods[::-1], dir_vals[::-1], color=colors[::-1],
+                   edgecolor="white", height=0.6)
+    ax.set_xlabel("Direction accuracy", fontsize=9)
+    ax.set_title("b  Direction (higher = better)", fontsize=9,
+                 fontweight="bold", loc="left")
+    for bar, v in zip(bars, dir_vals[::-1]):
+        ax.text(v + 0.005, bar.get_y() + bar.get_height() / 2, f"{v:.3f}",
+                va="center", fontsize=7)
+    ax.set_xlim(0.7, 0.95)
 
+
+def draw_fig2_l2(ax):
+    bars = ax.barh(methods[::-1], l2_vals[::-1], color=colors[::-1],
+                   edgecolor="white", height=0.6)
+    ax.set_xlabel("Mean L2 distance", fontsize=9)
+    ax.set_title("c  L2 (lower = better)", fontsize=9, fontweight="bold",
+                 loc="left")
+    for bar, v in zip(bars, l2_vals[::-1]):
+        ax.text(v + 0.08, bar.get_y() + bar.get_height() / 2, f"{v:.3f}",
+                va="center", fontsize=7)
+    ax.set_xlim(0, 5)
+
+
+def draw_fig2_tradeoff(ax):
+    for i, (m, p, l) in enumerate(zip(methods, pcc_vals, l2_vals)):
+        ax.scatter(l, p, color=colors[i], s=80, zorder=5,
+                   edgecolors="white", linewidths=1)
+        ax.annotate(m, (l, p), textcoords="offset points", xytext=(5, 5),
+                    fontsize=6)
+    ax.set_xlabel("Mean L2 (lower = better)", fontsize=9)
+    ax.set_ylabel("PCC-top100 (higher = better)", fontsize=9)
+    ax.set_title("d  Direction-calibration trade-off", fontsize=9,
+                 fontweight="bold", loc="left")
+    ax.annotate("", xy=(2.5, 0.72), xytext=(3.8, 0.75),
+                arrowprops=dict(arrowstyle="->", color=C_GREEN, lw=1.5))
+    ax.text(3.2, 0.76, "ESCT\nimprovement", fontsize=6, color=C_GREEN,
+            ha="center")
+
+
+FIG2_PANELS = [
+    ("figure2_v2_panel_a_pcc", draw_fig2_pcc),
+    ("figure2_v2_panel_b_dir", draw_fig2_dir),
+    ("figure2_v2_panel_c_l2", draw_fig2_l2),
+    ("figure2_v2_panel_d_tradeoff", draw_fig2_tradeoff),
+]
+
+fig2, axes2 = plt.subplots(1, 4, figsize=(14, 3.2))
+for ax, (_, draw) in zip(axes2, FIG2_PANELS):
+    draw(ax)
 fig2.tight_layout()
-fig2.savefig(f"{OUT}/figure2_performance_v2.pdf", dpi=300, bbox_inches="tight", facecolor="white")
-fig2.savefig(f"{OUT}/figure2_performance_v2.png", dpi=300, bbox_inches="tight", facecolor="white")
-plt.close()
+save_fig(fig2, "figure2_performance_v2")
+plt.close(fig2)
+
+for name, draw in FIG2_PANELS:
+    fig, ax = plt.subplots(figsize=(4.0, 3.2))
+    draw(ax)
+    fig.tight_layout()
+    save_fig(fig, name)
+    plt.close(fig)
 
 # ==============================
 # FIGURE 3: Epistasis discovery (3 panels)
@@ -180,43 +217,62 @@ pccs = [r["pcc_add"] for r in j["per_combo"]]
 valid = [(c,r,p) for c,r,p in zip(combos,ratios,pccs) if "1+" not in c and "+1" not in c]
 combos_f = [x[0] for x in valid]; ratios_f = [x[1] for x in valid]; pccs_f = [x[2] for x in valid]
 
+
+def draw_fig3_hist(ax):
+    ax.hist(ratios_f, bins=18, color=C_BLUE, edgecolor="white", alpha=0.85)
+    ax.axvline(0.5, color=C_RED, ls="--", lw=1.5)
+    ax.text(0.52, ax.get_ylim()[1] * 0.9, "additive/epistasis", fontsize=7,
+            color=C_RED)
+    ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
+    ax.set_ylabel("Combinations", fontsize=9)
+    ax.set_title("a  Observed non-additivity", fontsize=9, fontweight="bold",
+                 loc="left")
+
+
+def draw_fig3_scatter(ax):
+    ax.scatter(ratios_f, pccs_f, c=C_BLUE, s=25, alpha=0.7,
+               edgecolors="white", linewidths=0.5)
+    ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
+    ax.set_ylabel("Additive baseline PCC", fontsize=9)
+    ax.set_title("b  Additive PCC vs $\\epsilon$", fontsize=9,
+                 fontweight="bold", loc="left")
+    top3 = sorted(zip(combos_f, ratios_f, pccs_f), key=lambda x: -x[1])[:3]
+    for c, r, p in top3:
+        ax.annotate(c, (r, p), fontsize=6, textcoords="offset points",
+                    xytext=(4, 4))
+
+
+def draw_fig3_top15(ax):
+    top15 = sorted(zip(combos_f, ratios_f), key=lambda x: -x[1])[:15]
+    names = [x[0] for x in top15][::-1]
+    vals = [x[1] for x in top15][::-1]
+    bar_colors = [C_RED if v > 0.8 else C_BLUE for v in vals]
+    ax.barh(names, vals, color=bar_colors, edgecolor="white", height=0.6)
+    ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
+    ax.set_title("c  Top 15 non-additive pairs", fontsize=9,
+                 fontweight="bold", loc="left")
+    for i, v in enumerate(vals):
+        ax.text(v + 0.02, i, f"{v:.2f}", va="center", fontsize=6)
+
+
+FIG3_PANELS = [
+    ("figure3_panel_a_hist", draw_fig3_hist),
+    ("figure3_panel_b_scatter", draw_fig3_scatter),
+    ("figure3_panel_c_top15", draw_fig3_top15),
+]
+
 fig3, axes3 = plt.subplots(1, 3, figsize=(13, 3.8))
-
-# Panel a: histogram
-ax = axes3[0]
-ax.hist(ratios_f, bins=18, color=C_BLUE, edgecolor="white", alpha=0.85)
-ax.axvline(0.5, color=C_RED, ls="--", lw=1.5)
-ax.text(0.52, ax.get_ylim()[1]*0.9, "additive/epistasis", fontsize=7, color=C_RED)
-ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
-ax.set_ylabel("Combinations", fontsize=9)
-ax.set_title("a  Observed non-additivity", fontsize=9, fontweight="bold", loc="left")
-
-# Panel b: scatter
-ax = axes3[1]
-ax.scatter(ratios_f, pccs_f, c=C_BLUE, s=25, alpha=0.7, edgecolors="white", linewidths=0.5)
-ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
-ax.set_ylabel("Additive baseline PCC", fontsize=9)
-ax.set_title("b  Additive PCC vs $\\epsilon$", fontsize=9, fontweight="bold", loc="left")
-# annotate top 3
-top3 = sorted(zip(combos_f, ratios_f, pccs_f), key=lambda x:-x[1])[:3]
-for c, r, p in top3:
-    ax.annotate(c, (r, p), fontsize=6, textcoords="offset points", xytext=(4, 4))
-
-# Panel c: top 15 epistatic pairs as horizontal bar
-ax = axes3[2]
-top15 = sorted(zip(combos_f, ratios_f), key=lambda x:-x[1])[:15]
-names = [x[0] for x in top15][::-1]
-vals = [x[1] for x in top15][::-1]
-bar_colors = [C_RED if v > 0.8 else C_BLUE for v in vals]
-ax.barh(names, vals, color=bar_colors, edgecolor="white", height=0.6)
-ax.set_xlabel("Observed residual ratio $\\epsilon$", fontsize=9)
-ax.set_title("c  Top 15 non-additive pairs", fontsize=9, fontweight="bold", loc="left")
-for i, v in enumerate(vals):
-    ax.text(v+0.02, i, f"{v:.2f}", va="center", fontsize=6)
-
+for ax, (_, draw) in zip(axes3, FIG3_PANELS):
+    draw(ax)
 fig3.tight_layout()
-fig3.savefig(f"{OUT}/figure3_epistasis_v2.pdf", dpi=300, bbox_inches="tight", facecolor="white")
-fig3.savefig(f"{OUT}/figure3_epistasis_v2.png", dpi=300, bbox_inches="tight", facecolor="white")
-plt.close()
+save_fig(fig3, "figure3_epistasis_v2")
+plt.close(fig3)
+
+for name, draw in FIG3_PANELS:
+    fig, ax = plt.subplots(figsize=(4.2, 3.8))
+    draw(ax)
+    fig.tight_layout()
+    save_fig(fig, name)
+    plt.close(fig)
 
 print("ALL 3 CNS-STYLE FIGURES WRITTEN TO", OUT)
