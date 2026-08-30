@@ -296,12 +296,24 @@ def make_fig2():
     save_fig(fig, "figure2_journal")
     plt.close(fig)
 
-    panels = [
-        ("figure2_journal_panel_a", fig2_panel_a),
-        ("figure2_journal_panel_c", fig2_panel_c),
-    ]
-    for name, draw in panels:
+    for name, draw, label in [
+        ("figure2_journal_panel_a", fig2_panel_a, "a"),
+        ("figure2_journal_panel_c", fig2_panel_c, "c"),
+    ]:
         fig, ax = plt.subplots(figsize=(3.2, 3.2))
+        panel_label(ax, label, x=-0.10, y=1.04)
+        draw(ax)
+        save_fig(fig, name)
+        plt.close(fig)
+
+    for name, draw, label, size in [
+        ("figure2_journal_panel_b", fig2_panel_b, "b", (5.4, 4.0)),
+        ("figure2_journal_panel_d", fig2_panel_d, "d", (5.4, 3.6)),
+    ]:
+        fig = plt.figure(figsize=size)
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.axis("off")
+        panel_label(ax, label, x=0.005, y=0.99)
         draw(ax)
         save_fig(fig, name)
         plt.close(fig)
