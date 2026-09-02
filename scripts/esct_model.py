@@ -1,4 +1,4 @@
-"""DC-W1T V2: additive direction prior + residual velocity."""
+"""ESCT model: additive direction prior + residual velocity."""
 
 import copy
 
@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model_ttt import AuxDec, CellEnc, CondEnc, GroupSort, LBNN, W1Pot
+from model_blocks import AuxDec, CellEnc, CondEnc, GroupSort, LBNN, W1Pot
 
 
 def rbf_mmd(x, y, sigma=2.0):
@@ -62,7 +62,7 @@ class ResGate(nn.Module):
         return F.softplus(self.net(g))
 
 
-class DCW1TV2:
+class ESCTModel:
     def __init__(self, p_dim, emb_dim, device, seed=0, w1=True, dir_weight=1.0,
                  orth_weight=0.5, res_l2_weight=1.0, mmd_weight=5.0, aux_weight=1.0,
                  lr=3e-4, ema=0.999, use_res_gate=True, dist_loss="sinkhorn",

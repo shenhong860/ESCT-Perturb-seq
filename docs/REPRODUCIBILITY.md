@@ -43,8 +43,7 @@ python scripts/run_capra_clean_protocol.py 12 80
 Norman cat0 n=50: PCC 0.667, dir 0.805, mean L2 2.487, MMD 0.0503.
 CAPRA 80-epoch: PCC 0.601, dir 0.775, mean L2 3.390.
 
-Full tables and p-values are in the manuscript and
-`FINAL_STATUS_v22.md` in the manuscript submission package.
+Full tables and p-values are in the manuscript.
 
 ## Attribution
 

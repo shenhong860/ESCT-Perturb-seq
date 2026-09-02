@@ -5,10 +5,10 @@ set -e
 # Set before running:
 #   ESCT_REPO_DIR=/path/to/repository/root
 #   ESCT_WSL_CONDA=/opt/miniconda3/etc/profile.d/conda.sh (optional)
-#   ESCT_WSL_ENV=cw1ot (optional)
+#   ESCT_WSL_ENV=esct (optional)
 #   ESCT_LOG_DIR=/path/to/logs (optional, default $ESCT_REPO_DIR/outputs)
 CONDA_SH="${ESCT_WSL_CONDA:-/opt/miniconda3/etc/profile.d/conda.sh}"
-ENV_NAME="${ESCT_WSL_ENV:-cw1ot}"
+ENV_NAME="${ESCT_WSL_ENV:-esct}"
 REPO_DIR="${ESCT_REPO_DIR:?set ESCT_REPO_DIR to the repository root}"
 LOG_DIR="${ESCT_LOG_DIR:-$REPO_DIR/outputs}"
 mkdir -p "$LOG_DIR"

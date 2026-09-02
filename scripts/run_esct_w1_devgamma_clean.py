@@ -9,7 +9,7 @@ import scipy.stats as st
 import torch
 from scipy.optimize import linear_sum_assignment
 
-from model_v2 import DCW1TV2
+from esct_model import ESCTModel
 from run_esct_devgamma_clean import (
     KNN_K, KNN_TAU, LAMBDAS, N_SPLITS, DEV_FRAC, TRAIN_FRAC,
     dir_acc, load_dataset, metrics, norm, pcc, split_terms,
@@ -215,7 +215,7 @@ def run_split(X, pert, emb, dim, seed):
     for model_seed in MODEL_SEEDS:
         torch.manual_seed(seed * 100 + model_seed)
         np.random.seed(seed * 100 + model_seed)
-        model = DCW1TV2(X.shape[1], dim, DEVICE, seed=model_seed, w1=True,
+        model = ESCTModel(X.shape[1], dim, DEVICE, seed=model_seed, w1=True,
                         dir_weight=DIR_WEIGHT, mmd_weight=MMD_WEIGHT,
                         use_res_gate=False, dist_loss="mmd", res_eps=0.01)
         model.freeze_residual(True)

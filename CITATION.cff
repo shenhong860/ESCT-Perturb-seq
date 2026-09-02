@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use ESCT-Perturb-seq, please cite the repository and the accompanying manuscript."
 authors:
-  - family-names: Guo
-    given-names: Longhui
+  - family-names: Fan
+    given-names: Xiaoming
   - family-names: Wang
     given-names: Jinguo
   - family-names: Ma
@@ -13,10 +13,8 @@ authors:
     given-names: Yiyu
   - family-names: Niu
     given-names: Mimi
-  - family-names: Zhai
-    given-names: Xiaoya
-  - family-names: Fan
-    given-names: Xiaoming
+  - family-names: Guo
+    given-names: Longhui
 title: "ESCT-Perturb-seq"
 version: "v1.0"
 date-released: "2026-08-30"

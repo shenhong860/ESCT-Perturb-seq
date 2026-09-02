@@ -97,7 +97,7 @@ derivatives are redistributed.
 Please cite this repository when using ESCT:
 
 ```text
-Guo, L., Wang, J., Ma, Y., et al. ESCT-Perturb-seq: Epistasis-Weighted
+Fan, X., Wang, J., Ma, Y., et al. ESCT-Perturb-seq: Epistasis-Weighted
 Compositional Transport for unseen-gene combination perturbation prediction.
 ```
 

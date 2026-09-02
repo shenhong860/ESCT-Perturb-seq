@@ -24,8 +24,8 @@ Backend: Python/matplotlib only.
 """
 
 import json
-import os
-from pathlib import Path
+
+from paths import env_path, experiments_dir
 
 import matplotlib
 matplotlib.use("Agg")
@@ -48,12 +48,10 @@ mpl.rcParams.update({
 })
 
 
-EXPERIMENTS = Path(os.environ.get(
-    "ESCT_EXPERIMENTS_DIR", r"D:\guo\新课题_待定\experiments"))
-CAPRA_JSON = Path(os.environ.get(
-    "ESCT_CAPRA_JSON", r"E:\guo\新课题_待定\experiments\capra_clean_protocol.json"))
-OUT = Path(os.environ.get(
-    "ESCT_FIGURE_DIR", r"D:\guo\新课题_待定\submission\figures_journal"))
+EXPERIMENTS = experiments_dir()
+CAPRA_JSON = env_path("ESCT_CAPRA_JSON",
+                       experiments_dir() / "capra_clean_protocol.json")
+OUT = env_path("ESCT_FIGURE_DIR", experiments_dir() / "figures_journal")
 OUT.mkdir(parents=True, exist_ok=True)
 
 DATASET_LABEL = {
