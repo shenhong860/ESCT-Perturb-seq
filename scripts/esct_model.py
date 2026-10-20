@@ -110,7 +110,8 @@ class ESCTModel:
             r = self.res_gate(g) * self.vel(h, t, g)
         else:
             r = self.res_eps * self.vel(h, t, g)
-        return self.gamma(g) * d_prior[None, :] + r
+        prior = d_prior if d_prior.ndim == 2 else d_prior[None, :]
+        return self.gamma(g) * prior + r
 
     def freeze_residual(self, freeze=True):
         for p in self.vel.parameters():

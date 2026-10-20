@@ -67,14 +67,21 @@ def load_dataset(name):
     path, emb_path = dataset_paths(name)
     a = ad.read_h5ad(path)
     if name.lower() == "norman":
-        guides = a.obs["guide_identity"].astype(str).values
+        if "guide_identity" in a.obs:
+            guides = a.obs["guide_identity"].astype(str).values
 
-        def genes_from_guide(g):
-            parts = g.replace("__", "_").split("_")
-            return sorted({x for x in parts if not x.startswith("NegCtrl")})
+            def genes_from_guide(g):
+                parts = g.replace("__", "_").split("_")
+                return sorted({x for x in parts if not x.startswith("NegCtrl")})
 
-        pert = np.array(["+".join(genes_from_guide(g)) if genes_from_guide(g)
-                         else "control" for g in guides])
+            pert = np.array(["+".join(genes_from_guide(g)) if genes_from_guide(g)
+                             else "control" for g in guides])
+        elif "perturbation" in a.obs:
+            # The released scPerturb Norman file stores the cleaned target
+            # annotation directly, whereas the derived HVG file retains guide IDs.
+            pert = a.obs["perturbation"].astype(str).values
+        else:
+            raise KeyError("Norman data require guide_identity or perturbation")
     else:
         pert = a.obs["perturbation"].astype(str).values
 

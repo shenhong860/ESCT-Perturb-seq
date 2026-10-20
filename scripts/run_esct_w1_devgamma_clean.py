@@ -1,8 +1,12 @@
 """Leakage-clean ESCT+W1 rerun on the unified three-dataset protocol."""
 
+import argparse
 import json
 import os
+import pickle
 import sys
+import time
+from pathlib import Path
 
 import numpy as np
 import scipy.stats as st
@@ -11,20 +15,22 @@ from scipy.optimize import linear_sum_assignment
 
 from esct_model import ESCTModel
 from run_esct_devgamma_clean import (
-    KNN_K, KNN_TAU, LAMBDAS, N_SPLITS, DEV_FRAC, TRAIN_FRAC,
+    KNN_K, KNN_TAU, LAMBDAS, N_SPLITS as DEFAULT_N_SPLITS, DEV_FRAC, TRAIN_FRAC,
     dir_acc, load_dataset, metrics, norm, pcc, split_terms,
 )
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 TOP_K = 100
-MODEL_SEEDS = [0, 1]
-ITERS = 500
-BATCH = 128
+MODEL_SEEDS = [int(x) for x in os.environ.get("ESCT_MODEL_SEEDS", "0,1").split(",")]
+N_SPLITS = int(os.environ.get("ESCT_SPLITS", str(DEFAULT_N_SPLITS)))
+DIAGNOSTICS_DIR = os.environ.get("ESCT_DIAGNOSTICS_DIR", "")
+ITERS = int(os.environ.get("ESCT_ITERS", "500"))
+BATCH = int(os.environ.get("ESCT_BATCH", "128"))
 DIR_WEIGHT = 2.0
 MMD_WEIGHT = 10.0
-N_CELLS = 200
-MAX_TRAIN_CELLS = 300
+N_CELLS = int(os.environ.get("ESCT_N_CELLS", "200"))
+MAX_TRAIN_CELLS = int(os.environ.get("ESCT_MAX_TRAIN_CELLS", "300"))
 NO_RETRIEVAL = os.environ.get("ABLATION_NO_RETRIEVAL", "0") == "1"
 NO_RESIDUAL = os.environ.get("ABLATION_NO_RESIDUAL", "0") == "1"
 
@@ -78,7 +84,7 @@ def torch_matvec(A, v):
     return product.cpu().numpy()
 
 
-def run_split(X, pert, emb, dim, seed):
+def run_split(name, X, pert, emb, dim, seed):
     labels = sorted(set(pert) - {"control"})
     singles = [x for x in labels if len(split_terms(x)) == 1]
     combos = [x for x in labels if len(split_terms(x)) == 2
@@ -274,6 +280,7 @@ def run_split(X, pert, emb, dim, seed):
         es_delta = (av if NO_RESIDUAL
                     else av + torch_matvec(phi(c), beta))
         es_cells = fc + (es_delta - fd)
+        corrected_direct_cells = ctrl_cells + es_delta
         true = true_delta[c]
         vectors[c] = {"true": true.tolist(), "add": av.tolist(),
                       "esct": es_delta.tolist(), "w1": es_cells.mean(0).tolist()}
@@ -286,20 +293,109 @@ def run_split(X, pert, emb, dim, seed):
             "w1": metrics(es_cells.mean(0) - ctrl_mean, true),
             "add_mmd": rbf_mmd(ctrl_cells + av, true_cells),
             "esct_mmd": rbf_mmd(es_cells, true_cells),
+            "add_cell_deg100_mmd": rbf_mmd(
+                (ctrl_cells + av)[:, np.argsort(-np.abs(true))[:TOP_K]],
+                true_cells[:, np.argsort(-np.abs(true))[:TOP_K]],
+            ),
+            "esct_cell_deg100_mmd": rbf_mmd(
+                es_cells[:, np.argsort(-np.abs(true))[:TOP_K]],
+                true_cells[:, np.argsort(-np.abs(true))[:TOP_K]],
+            ),
+            "corrected_direct_cell_deg100_mmd": rbf_mmd(
+                corrected_direct_cells[:, np.argsort(-np.abs(true))[:TOP_K]],
+                true_cells[:, np.argsort(-np.abs(true))[:TOP_K]],
+            ),
         })
+    if DIAGNOSTICS_DIR and test_combos:
+        output_dir = Path(DIAGNOSTICS_DIR)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        arrays = {"ctrl_cells": ctrl_cells, "combo_names": np.asarray(test_combos)}
+        diagnostic_rows = []
+        for index, c in enumerate(test_combos):
+            true_cells = dense_sample(X, pert_idx[c], N_CELLS,
+                                      900 + seed * 100 + len(test_combos))
+            raw_mapped = np.mean([flow_cells[s][c] for s in MODEL_SEEDS
+                                  if s in flow_cells], axis=0)
+            fd = raw_mapped.mean(0) - ctrl_mean
+            av = np.asarray(anchor(c), dtype=np.float64)
+            es_delta = (av if NO_RESIDUAL
+                        else av + torch_matvec(phi(c), beta))
+            es_cells = raw_mapped + (es_delta - fd)
+            direct_cells = ctrl_cells + es_delta
+            row_idx, col_idx = linear_sum_assignment(
+                torch.cdist(
+                    torch.as_tensor(ctrl_cells, device=DEVICE, dtype=torch.float32),
+                    torch.as_tensor(es_cells, device=DEVICE, dtype=torch.float32),
+                ).cpu().numpy()
+            )
+            assignment = np.zeros((len(ctrl_cells), len(es_cells)), dtype=np.uint8)
+            assignment[row_idx, col_idx] = 1
+            prefix = f"combo_{index}"
+            arrays[f"{prefix}_true"] = true_cells
+            arrays[f"{prefix}_direct"] = direct_cells
+            arrays[f"{prefix}_raw_map"] = raw_mapped
+            arrays[f"{prefix}_map_delta"] = raw_mapped - ctrl_cells
+            arrays[f"{prefix}_esct"] = es_cells
+            arrays[f"{prefix}_assignment"] = assignment
+            raw_mean = raw_mapped.mean(0) - ctrl_mean
+            calibrated_mean = es_cells.mean(0) - ctrl_mean
+            diagnostic_rows.append({
+                "combo": c,
+                "n_ctrl": int(len(ctrl_cells)),
+                "n_target": int(len(true_cells)),
+                "raw_map_mean_residual_l2": float(
+                    np.sqrt(np.sum((raw_mean - es_delta) ** 2))
+                ),
+                "calibrated_mean_residual_l2": float(
+                    np.sqrt(np.sum((calibrated_mean - es_delta) ** 2))
+                ),
+                "map_displacement_mean_l2": float(np.mean(
+                    np.sqrt(np.sum(
+                        (raw_mapped - ctrl_cells) ** 2, axis=1
+                    ))
+                )),
+                "assignment_nonzero": int(assignment.sum()),
+                "assignment_note": "post-hoc visualization only",
+            })
+        np.savez_compressed(
+            output_dir / f"{name}_split{seed}_cells.npz", **arrays
+        )
+        with (output_dir / f"{name}_split{seed}_cells.json").open("w") as handle:
+            json.dump({"dataset": name, "split": seed, "combos": diagnostic_rows},
+                      handle, indent=2)
     calibration = {"gamma": gamma, "lambda": best_lambda,
                    "n_train_bank": len(train_genes),
                    "n_dev_sims": len(dev_sims), "n_cat0": len(rows)}
     return calibration, rows, vectors
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dataset", choices=["norman", "replogle", "wessels"])
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--embedding-pkl", type=Path)
+    parser.add_argument("--representation", default="scGPT")
+    return parser.parse_args()
+
+
 def main():
-    name, out_path = sys.argv[1:]
+    args = parse_args()
+    name, out_path = args.dataset, args.output
     X, pert, emb = load_dataset(name)
+    if args.embedding_pkl is not None:
+        with args.embedding_pkl.open("rb") as handle:
+            payload = pickle.load(handle)
+        emb = {
+            str(gene): np.asarray(vector, dtype=np.float64)
+            for gene, vector in zip(payload["genes"], payload["emb"])
+        }
     dim = int(emb[next(iter(emb))].shape[0])
     rows, vectors, calibrations = [], {}, {}
+    started = time.perf_counter()
+    if DEVICE == "cuda":
+        torch.cuda.reset_peak_memory_stats()
     for seed in range(1, N_SPLITS + 1):
-        cal, split_rows, split_vectors = run_split(X, pert, emb, dim, seed)
+        cal, split_rows, split_vectors = run_split(name, X, pert, emb, dim, seed)
         rows.extend(split_rows)
         vectors[str(seed)] = split_vectors
         calibrations[str(seed)] = cal
@@ -308,9 +404,21 @@ def main():
 
     result = {"dataset": name, "n": len(rows), "calibrations": calibrations,
               "vectors_cat0": vectors, "rows": rows,
+              "representation": args.representation,
+              "embedding_file": (str(args.embedding_pkl)
+                                 if args.embedding_pkl is not None else None),
+              "embedding_dim": dim,
+              "n_output_genes": int(X.shape[1]),
+              "model_seeds": MODEL_SEEDS,
+              "iterations": ITERS,
               "gamma_rule": "median dev top1",
               "ablation_no_retrieval": NO_RETRIEVAL,
-              "ablation_no_residual": NO_RESIDUAL}
+              "ablation_no_residual": NO_RESIDUAL,
+              "runtime_seconds": float(time.perf_counter() - started),
+              "splits_run": N_SPLITS,
+              "device": DEVICE,
+              "peak_gpu_mb": (float(torch.cuda.max_memory_allocated() / (1024 ** 2))
+                              if DEVICE == "cuda" else None)}
     methods = ["add", "esct", "w1"]
     for j, metric in enumerate(["pcc", "dir", "mean_l2"]):
         vals = {m: np.array([r[m][j] for r in rows]) for m in methods}
@@ -328,10 +436,31 @@ def main():
         "p": float(st.wilcoxon([r["esct_mmd"] for r in rows],
                                [r["add_mmd"] for r in rows]).pvalue),
     }
+    result["cell_deg100_mmd"] = {
+        "add": float(np.mean([r["add_cell_deg100_mmd"] for r in rows])),
+        "w1": float(np.mean([r["esct_cell_deg100_mmd"] for r in rows])),
+        "p": float(st.wilcoxon([r["esct_cell_deg100_mmd"] for r in rows],
+                               [r["add_cell_deg100_mmd"] for r in rows]).pvalue),
+    }
+    corrected_direct_mmd = np.asarray([
+        r["corrected_direct_cell_deg100_mmd"] for r in rows
+    ])
+    mapped_mmd = np.asarray([r["esct_cell_deg100_mmd"] for r in rows])
+    result["cell_deg100_mmd"]["corrected_direct_mean"] = float(
+        corrected_direct_mmd.mean()
+    )
+    result["cell_deg100_mmd"]["w1_minus_corrected_direct"] = float(
+        np.mean(mapped_mmd - corrected_direct_mmd)
+    )
+    result["cell_deg100_mmd"]["w1_vs_corrected_direct_p"] = (
+        float(st.wilcoxon(mapped_mmd, corrected_direct_mmd).pvalue)
+        if np.any(mapped_mmd != corrected_direct_mmd) else 1.0
+    )
     with open(out_path, "w") as f:
         json.dump(result, f, indent=2, default=json_default)
     print(json.dumps({k: result[k] for k in ["dataset", "n", "pcc", "dir",
-                                             "mean_l2", "mmd"]}, indent=2))
+                                             "mean_l2", "mmd", "cell_deg100_mmd",
+                                             "runtime_seconds", "peak_gpu_mb"]}, indent=2))
     print("written:", out_path)
 
 
